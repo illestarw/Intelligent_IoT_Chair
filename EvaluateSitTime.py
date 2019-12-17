@@ -1,7 +1,6 @@
 import boto3
 import json
 from datetime import datetime, timezone, timedelta
-from botocore.exceptions import ClientError
 
 # res
 # {
@@ -101,6 +100,7 @@ def lambda_handler(event, context):
     if notEnoughRestAlert:
         message = "Sedentary Alert! It seems that you did not take enough rest. We suggest a least of 5 minutes for maintaining healthy conditions."
     elif sedentaryAlert:
+		# timezone fix (UTC-8 Zone)
         init_sit_t_timezone = init_sit_t - timedelta(hours=8)
         message = "Sedentary Alert! You have been sitting on the chair since " + init_sit_t_timezone.strftime("%b %-d, %Y, %H:%M:%S") + ". We suggest you to leave your chair 5 minutes, do some stretchings, and maybe get yourself some coffee."
     else:
