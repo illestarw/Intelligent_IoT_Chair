@@ -1,0 +1,220 @@
+{
+	"Comment": "smart chair state machine weight diff",
+	"StartAt": "Init",
+	"States": {
+		"Init": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:EvaluateWeightDiff",
+			"Next": "CheckPosture"
+		},
+		"CheckPosture": {
+			"Type": "Choice",
+			"Choices": [
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": true,
+				  "Next": "Parallel"
+				},
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": false,
+				  "Next": "Republish to IoT"
+				}
+			],
+			"Default": "Republish to IoT"
+		},
+		"Parallel": {
+			"Type": "Parallel",
+			"Branches": [
+			{
+				"StartAt": "Publish to SNS",
+				"States": {
+					"Publish to SNS": {
+						"Type": "Task",
+						"Resource": "arn:aws:states:::sns:publish",
+						"Parameters": {
+							"Message.$": "$.msg",
+							"PhoneNumber": "+14256285826"
+						},
+						"End": true
+					}
+				}
+			},
+			{
+			  "StartAt": "Republish to IoT Para",
+			  "States": {
+				"Republish to IoT Para": {
+					"Type": "Task",
+					"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishWeightDiff",
+					"End": true
+				}
+			  }
+			}
+			],
+			"End": true
+		},
+		"Republish to IoT": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishWeightDiff",
+			"End": true
+		}	
+	}
+}
+
+// --------
+{
+	"Comment": "smart chair state machine sit time",
+	"StartAt": "Init",
+	"States": {
+		"Init": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:EvaluateSitTime",
+			"Next": "CheckAlert"
+		},
+		"CheckAlert": {
+			"Type": "Choice",
+			"Choices": [
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": true,
+				  "Next": "Parallel"
+				},
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": false,
+				  "Next": "Republish to IoT"
+				}
+			],
+			"Default": "Republish to IoT"
+		},
+		"Parallel": {
+			"Type": "Parallel",
+			"Branches": [
+			{
+				"StartAt": "Publish to SNS",
+				"States": {
+					"Publish to SNS": {
+						"Type": "Task",
+						"Resource": "arn:aws:states:::sns:publish",
+						"Parameters": {
+							"Message.$": "$.msg",
+							"PhoneNumber": "+14256285826"
+						},
+						"End": true
+					}
+				}
+			},
+			{
+			  "StartAt": "Republish to IoT Para",
+			  "States": {
+				"Republish to IoT Para": {
+					"Type": "Task",
+					"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishSitTime",
+					"End": true
+				}
+			  }
+			}
+			],
+			"End": true
+		},
+		"Republish to IoT": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishSitTime",
+			"End": true
+		}	
+	}
+}
+
+// --------
+{
+	"Comment": "smart chair state machine monitor distance",
+	"StartAt": "Init",
+	"States": {
+		"Init": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:EvaluateDist",
+			"Next": "CheckDistance"
+		},
+		"CheckDistance": {
+			"Type": "Choice",
+			"Choices": [
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": true,
+				  "Next": "Parallel"
+				},
+				{
+				  "Variable": "$.SNSAlert",
+				  "BooleanEquals": false,
+				  "Next": "Republish to IoT"
+				}
+			],
+			"Default": "Republish to IoT"
+		},
+		"Parallel": {
+			"Type": "Parallel",
+			"Branches": [
+			{
+				"StartAt": "Publish to SNS",
+				"States": {
+					"Publish to SNS": {
+						"Type": "Task",
+						"Resource": "arn:aws:states:::sns:publish",
+						"Parameters": {
+							"Message.$": "$.msg",
+							"PhoneNumber": "+14256285826"
+						},
+						"End": true
+					}
+				}
+			},
+			{
+			  "StartAt": "Republish to IoT Para",
+			  "States": {
+				"Republish to IoT Para": {
+					"Type": "Task",
+					"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishDist",
+					"End": true
+				}
+			  }
+			}
+			],
+			"End": true
+		},
+		"Republish to IoT": {
+			"Type": "Task",
+			"Resource": "arn:aws:lambda:us-west-2:967717396922:function:RepublishDist",
+			"End": true
+		}
+	}
+}
+
+
+
+// -------------
+status/sittime
+
+{
+  "lastsitstat": true,
+  "inalert": true,
+  "init_sit_time": "2019-11-30T06:30:05.787000Z",
+  "leave_chair_time": "2019-11-30T08:35:05.787000Z"
+}
+
+status/distance
+{
+  "lastdis": false
+}
+
+status/posture
+{
+  "lastpos": true
+}
+
+CREATE EXTERNAL TABLE `sensor`(
+  `weight` double, 
+  `timestamp` TIMESTAMP)
+ROW FORMAT SERDE 
+  'org.openx.data.jsonserde.JsonSerDe' 
+LOCATION
+  's3://chair-history/'
